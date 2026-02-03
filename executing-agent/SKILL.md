@@ -1,69 +1,21 @@
 ---
 name: security-power-executing-agent
-description: 在 SecurityPower 各执行步骤完成后生成安全报告与修复建议；若修复可以代码形式呈现则创建 Pull Request。当用户需要安全扫描报告、修复建议或基于 SecurityPower 执行结果生成 PR 时使用。
+description: After plan steps run, produce security report and fix suggestions; create PR when fixes are code. Reports from .security-power/.output/. Use when user needs report or PR from SecurityPower run.
 ---
 
-# SecurityPower 执行代理（报告与修复）
+# Executing agent (report & fix)
 
-在 plan 技能中的每个执行步骤完成后，由本技能负责产出报告与修复建议，并在合适时发起 Pull Request。
+**Input**: Plan results — step pass/fail, logs/reports under `.security-power/.output/` (SARIF, JSON, text), failed or finding steps.
 
-## 输入
+**Output**:
+1. **Report** — per step (especially failed/findings): issue summary (what, severity, scope), fix suggestions (concrete), refs (file:line, rule ID, report snippet). Write report to `.security-power/.output/`.
+2. **Optional PR** — when fixes are code/config: implement locally, open PR; title/description map to issues and fixes. If fixes are process/docs only, no PR required.
+3. **Trace** — keep rule ID, file:line, report path in report and PR.
 
-- 来自 **security-power-plan** 技能的执行结果：
-  - 各步骤通过/失败状态
-  - 每步的日志、扫描报告（如 SARIF、JSON、文本），报告文件统一位于项目根目录下的 **`.security-power/.output/`**
-  - 失败或发现问题的步骤与摘要
+**Report shape** (concise):
+- Step [name] — pass/fail
+- Issue summary (severity)
+- Fix suggestions (actionable)
+- Refs (file:line, rule ID)
 
-## 行为
-
-### 1. 报告（每步执行后）
-
-对每个执行过的步骤（尤其有发现或失败的步骤）给出：
-
-- **问题摘要**：发现什么问题、严重程度、影响范围。
-- **修复建议**：具体、可操作的建议（配置修改、代码修改、依赖升级、流程改进等）。
-- **引用**：对应报告片段、规则 ID、文件与行号等，便于追溯。
-
-报告结构建议：
-
-```markdown
-# SecurityPower 执行报告
-
-## 步骤 [名称] — [通过/失败]
-
-### 问题摘要
-- 问题 1（严重程度）：简要描述
-- 问题 2：...
-
-### 修复建议
-1. 建议 1：具体操作
-2. 建议 2：...
-
-### 引用
-- 文件:行号 / 规则 ID / 报告片段
-```
-
-### 2. 代码级修复与 Pull Request
-
-- **当修复建议可以写成具体代码或配置变更时**：在本地实现修改（补丁、新文件、配置更新等），然后生成一个 **Pull Request**。
-- PR 内容应包含：
-  - 标题与描述：对应哪些问题、做了哪些修复。
-  - 与报告中的「问题摘要」「修复建议」一一对应，便于审查。
-- **当修复仅为流程/文档/外部操作时**：在报告中写清建议即可，不强制创建 PR。
-
-### 3. 与 plan 的衔接
-
-- 若 plan 中所有所选步骤均通过：报告可标注「全部通过」，仍可给出加固建议（可选）。
-- 若存在失败或发现：报告重点放在失败项与发现项，修复建议优先，再视情况创建 PR。
-
-## 输出
-
-1. **统一报告**：覆盖所有已执行步骤的问题与修复建议；报告文件写入 **`.security-power/.output/`**，与 plan 步骤产出的原始报告同目录，便于追溯。
-2. **可选**：一个或多个 PR，对应可代码化的修复。
-3. **引用与追溯**：报告与 PR 中保留规则 ID、文件:行号、报告路径（`.security-power/.output/` 下），便于复现与审计。
-
-## 注意事项
-
-- 报告用语简洁、可操作；修复建议避免空泛。
-- 创建 PR 前确认修改不破坏既有构建与测试（可依赖 plan 中的「编译代码」等步骤做快速验证）。
-- 若仓库无推送权限或用户明确不创建 PR，仅输出报告与本地补丁说明即可。
+**Notes**: Report concise and actionable. Before PR, ensure build/tests still pass (e.g. plan compile step). If no push rights or user says no PR, output report and local patch only.
