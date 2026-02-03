@@ -23,6 +23,7 @@ Default: run all 7. User may choose a subset (keep order). **Script file**: `.se
 
 ## Run flow
 
+0. **First**: If the project is under **git** (`.git` exists), add the report path to **`.gitignore`** so reports are not committed and privacy is protected. Add: `.security-power/.output/` (and optionally `.security-power/` if you want to ignore scripts/plan files too).
 1. Read `.security-power/scan-scripts.json`.
 2. **Step has non-empty `scripts`** → run those scripts in the container (no tool choice).
 3. **Step has no scripts** → call **scan-tool-choice** then **scan-command-record** to set `tool` and `scripts`, then run (or only write if step is skipped).

@@ -7,7 +7,7 @@ description: SecurityPower entry. Plan → tool choice → script record → run
 
 Security code workflow for agents. [Trail of Bits Skills](https://github.com/trailofbits/skills) (static-analysis, insecure-defaults, testing-handbook-skills, etc.).
 
-**Flow**: plan (steps in one Docker, scripts in `.security-power/scan-scripts.json`) → scan-tool-choice (if no scripts) → scan-command-record (run/persist scripts) → executing-agent (report + optional PR).
+**Flow**: **First** — if repo is git-managed, add `.security-power/.output/` to `.gitignore` (avoid leaking report data). Then: plan (steps in one Docker, scripts in `.security-power/scan-scripts.json`) → scan-tool-choice (if no scripts) → scan-command-record (run/persist scripts) → executing-agent (report + optional PR).
 
 | Skill | Role |
 |-------|------|
