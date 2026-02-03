@@ -26,7 +26,7 @@ Default: run all 7. User may choose a subset (keep order). **Script file**: `.se
 0. **First**: If the project is under **git** (`.git` exists), add the report path to **`.gitignore`** so reports are not committed and privacy is protected. Add: `.security-power/.output/` (and optionally `.security-power/` if you want to ignore scripts/plan files too).
 1. Read `.security-power/scan-scripts.json`.
 2. **Step has non-empty `scripts`** → run those scripts in the container (no tool choice).
-3. **Step has no scripts** → call **scan-tool-choice** then **scan-command-record** to set `tool` and `scripts`, then run (or only write if step is skipped).
+3. **Step has no scripts** → call **scan-tool-choice** then **scan-script-record** to set `tool` and `scripts`, then run (or only write if step is skipped).
 4. **Step skipped** → if no scripts yet, still set tool + scripts and write (do not run).
 
 Execution: start one container, copy code in, run each step’s `scripts` in order in that container; write reports to `.security-power/.output/`. On step failure: record and continue by default; finally summarize. Hand off results to **executing-agent** for report and optional PR.

@@ -1,5 +1,5 @@
 ---
-name: scan-command-record
+name: scan-script-record
 description: Persist and run per-step scripts in .security-power/scan-scripts.json. If step has scripts → run in Docker; else set tool+scripts with scan-tool-choice. Always record scripts (even when step skipped). Use with plan / scan-tool-choice.
 ---
 
