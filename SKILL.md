@@ -1,6 +1,6 @@
 ---
 name: security-power
-description: SecurityPower 安全代码工作流入口。基于可组合技能的安全扫描流程，包含执行计划、工具选择、命令记录与执行报告。当用户要求安全扫描、执行 SecurityPower、运行安全计划或需要安全代码工作流时使用本技能作为入口。
+description: SecurityPower 安全代码工作流入口。基于可组合技能的安全扫描流程，包含执行计划、工具选择、脚本记录与执行报告。当用户要求安全扫描、执行 SecurityPower、运行安全计划或需要安全代码工作流时使用本技能作为入口。
 ---
 
 # SecurityPower 入口
@@ -17,7 +17,7 @@ SecurityPower 是基于 [Trail of Bits Skills](https://github.com/trailofbits/sk
 |------|------|------|
 | **plan** | [plan/SKILL.md](plan/SKILL.md) | 定义并执行安全扫描计划（编译、密码泄露、依赖、静态、包、动态、Fuzzing 等步骤）；默认全部执行，也可按需选择子集。 |
 | **scan-tool-choice** | [scan-tool-choice/SKILL.md](scan-tool-choice/SKILL.md) | 为每类扫描步骤确定使用的工具：首次询问用户选用哪个并记录，再次询问是否采用上次使用的。 |
-| **scan-command-record** | [scan-command-record/SKILL.md](scan-command-record/SKILL.md) | 按步骤持久化命令集合，再次执行时按记录逐条执行；与 scan-tool-choice 配合使用。 |
+| **scan-command-record** | [scan-command-record/SKILL.md](scan-command-record/SKILL.md) | 按步骤持久化脚本集合到 scan-scripts.json，再次执行时按记录逐条执行；与 scan-tool-choice 配合使用；即使某步被 skip 也记录其脚本。 |
 | **executing-agent** | [executing-agent/SKILL.md](executing-agent/SKILL.md) | 每步执行后给出 report（问题与修复建议）；若修复可代码化则生成 Pull Request。 |
 
 ## 推荐执行流程
@@ -25,7 +25,7 @@ SecurityPower 是基于 [Trail of Bits Skills](https://github.com/trailofbits/sk
 1. **从本入口进入**：用户提出安全扫描或 SecurityPower 需求时，使用本技能作为入口。
 2. **执行计划**：按 **plan** 技能确定执行范围（全部或部分步骤），对每个步骤依次：
    - 先按 **scan-tool-choice** 确定该步骤使用的工具（询问用户并记录）；
-   - 再按 **scan-command-record** 根据已选工具读取或确定命令集合，按顺序逐条执行并写入/更新记录。
+   - 再按 **scan-command-record** 根据已选工具读取或确定脚本集合，按顺序逐条执行并写入/更新记录。
 3. **报告与修复**：计划执行完毕后，按 **executing-agent** 技能生成报告（问题与修复建议），若修复可代码化则生成 PR。
 
 ## 完成条件
@@ -35,5 +35,5 @@ SecurityPower 是基于 [Trail of Bits Skills](https://github.com/trailofbits/sk
 ## 详细说明
 
 - 计划步骤与使用方式详见 [plan/SKILL.md](plan/SKILL.md)。
-- 工具选择与命令记录详见 [scan-tool-choice/SKILL.md](scan-tool-choice/SKILL.md) 与 [scan-command-record/SKILL.md](scan-command-record/SKILL.md)。
+- 工具选择与脚本记录详见 [scan-tool-choice/SKILL.md](scan-tool-choice/SKILL.md) 与 [scan-command-record/SKILL.md](scan-command-record/SKILL.md)。
 - 报告与 PR 规范详见 [executing-agent/SKILL.md](executing-agent/SKILL.md)。
