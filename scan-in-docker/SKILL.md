@@ -1,6 +1,6 @@
 ---
 name: scan-in-docker
-description: Copy code into one Docker container; run all selected scan steps inside it; copy reports to .security-power/.output/. Use after plan.
+description: Copy code into one Docker container; verify/install each step's tool (from scan-scripts.json) before run; run all selected scan steps inside it; copy reports to .security-power/.output/. Use after plan.
 ---
 
 # Scan in Docker
@@ -20,7 +20,9 @@ Concretely: use **Docker CLI** — `docker run` (or `docker compose up`) to star
 
 1. **Start one container** (e.g. `docker run -d --name security-power-scan <image>`; image configurable; keep running for all steps).
 2. **Copy code + config** into container workdir (e.g. `docker cp . <container>:/workspace/`; include `.security-power/`, exclude `.security-power/.output/` if present).
-3. **Run steps** in container: for each step in `last-plan.json` order, `docker exec` to run its `scripts[]` from `scan-scripts.json` in array order; record stdout/stderr/exit; reports go to container `.security-power/.output/`. On step failure: record and continue; summarize at end.
+3. **Run steps** in container: for each step in `last-plan.json` order:
+   - **Verify tool**: read step’s `tool` from `scan-scripts.json`; check if installed (e.g. `which <tool>` or `<tool> --version`). If **not** installed → install it (e.g. apt/pip/go install per container/base image), then proceed.
+   - **Run scripts**: `docker exec` to run that step’s `scripts[]` from `scan-scripts.json` in array order; record stdout/stderr/exit; reports go to container `.security-power/.output/`. On step failure: record and continue; summarize at end.
 4. **Copy reports**: `docker cp <container>:/workspace/.security-power/.output/ .security-power/.output/`.
 5. **Stop/remove** container (e.g. `docker stop` / `docker rm`) or keep per config.
 
@@ -34,7 +36,7 @@ Concretely: use **Docker CLI** — `docker run` (or `docker compose up`) to star
 
 - [ ] One container for all selected steps
 - [ ] Code + config copied in; reports copied out
-- [ ] Steps run in last-plan order; scripts in array order; failures recorded, continue by default
+- [ ] Before each step: tool verified (install if missing); then scripts run in last-plan order; failures recorded, continue by default
 
 ## Output
 
