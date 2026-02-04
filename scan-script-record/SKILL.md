@@ -17,6 +17,8 @@ File: `.security-power/scan-scripts.json`. Format: `{ "<step_id>": { "tool": "..
 
 Run scripts in array order in container. On script failure: mark step failed; continue or stop per policy. Re-determine scripts when user changes tool or when recorded scripts fail.
 
+**After execution (review)**: When plan finishes a run, review the execution process (logs, actual commands run, failures, user corrections). If any step’s scripts **changed** compared to `scan-scripts.json` (e.g. command was fixed during run, or a different/better script was used), **update** `.security-power/scan-scripts.json` with the actual or improved `scripts` (and `tool` if changed) so the next run uses the updated scripts.
+
 ## Example
 
 ```json

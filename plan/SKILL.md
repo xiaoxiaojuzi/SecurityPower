@@ -53,8 +53,9 @@ Run all scan steps inside **one Docker container**. Paths: scripts/plan → `.se
 4. **Step has no scripts** → call **scan-tool-choice** then **scan-script-record** to set `tool` and `scripts`, then run (or only write if step is skipped).
 5. **Step skipped** (not in selected plan) → if no scripts yet, still set tool + scripts and write (do not run).
 6. After run, **update** `.security-power/last-plan.json` with the steps that were actually executed (so next time this plan is the default).
+7. **Review execution**: Review the execution process (logs, actual commands run, failures, or user corrections). If any step’s **scripts** differed from what is in `scan-scripts.json` (e.g. command was adjusted during run, or a better script was used), **update** `.security-power/scan-scripts.json` with the actual/improved scripts so the next run uses them.
 
-Execution: start one container, copy code in, run each selected step’s `scripts` in order in that container; write reports to `.security-power/.output/`. On step failure: record and continue by default; finally summarize. Hand off results to **executing-agent** for report and optional PR.
+Execution: start one container, copy code in, run each selected step’s `scripts` in order in that container; write reports to `.security-power/.output/`. On step failure: record and continue by default; finally summarize. **Review** (step 7) then hand off results to **executing-agent** for report and optional PR.
 
 ## Checklist
 
