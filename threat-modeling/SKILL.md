@@ -1,44 +1,37 @@
 ---
 name: threat-modeling
-description: Run threat modeling per threat-modeling-expert; scope = user-provided diff (show commits) or full code. Report to .security-power/.output/ with scope (git diff + commits). Use when plan includes threat-modeling step.
+description: Threat model per threat-modeling-expert; scope = 1 (entire) | 2+hash | 3+start+end. Report to .security-power/.output/ with scan info (branch, SCOPE_START/END_COMMIT, SCOPE_END_BRANCH, commits). Use when plan includes threat-modeling.
 ---
 
 # Threat Modeling
 
-Run threat modeling following [threat-modeling-expert](https://github.com/sickn33/antigravity-awesome-skills/tree/main/skills/threat-modeling-expert): STRIDE, PASTA, attack trees, data flow, risk prioritization, mitigations. **Scope**: either a **diff** (user must provide; show which commits are included) or **full codebase** if no diff.
+Follow [threat-modeling-expert](https://github.com/sickn33/antigravity-awesome-skills/tree/main/skills/threat-modeling-expert): STRIDE, PASTA, attack trees, data flow, risk prioritization, mitigations. Output: report under `.security-power/.output/` with **Scan info** and **Threat modeling scope**.
 
-**Output**: Threat modeling report under `.security-power/.output/` that **must** include a **Threat modeling scope** section with: (1) the scope description (diff vs full code), (2) **git diff** (when diff is used), (3) **commit records** (list of commits in scope; when diff is used, clearly list which commits the diff contains).
+## Scope: ask user (format `choice+value` to avoid 1/2 vs hash confusion)
 
-## Scope
+| Choice | Input | Resolve |
+|--------|-------|---------|
+| 1 | `1` or `1+entire` | start=root, end=**branch name + commit hash** (resolve HEAD; do **not** write "HEAD") |
+| 2 | `2+<hash>` | start=end=hash |
+| 3 | `3+<start_hash>+<end_hash>` | start/end = hashes; commits = `git log start..end` |
 
-- **With diff**: The **diff** (exact value) must be **manually provided by the user** (e.g. paste or path). **Explicitly tell the user** which commits are included — e.g. display "包含以下提交记录:" / "Scope includes the following commits:" then list each commit (hash + subject). Use that diff as the modeling scope.
-- **Without diff**: If no diff is provided, use the **entire codebase** for modeling. State "Full codebase" in the report scope section and **write the last commit’s git hash** (e.g. `git rev-parse HEAD`) in the scope section so the codebase state is pinned.
+Prompt user with these examples. Parse input → resolve start/end/commits → use for modeling.
 
-## Execution (align with threat-modeling-expert)
+## Execution
 
-1. Define scope and trust boundaries (from diff or full code).
-2. Create data flow diagrams; identify assets and entry points.
-3. Apply STRIDE to each component; build attack trees for critical paths.
-4. Score and prioritize threats; design mitigations; document residual risks.
-5. Write report to `.security-power/.output/threat-modeling-report.md` (or agreed path).
+Define scope/trust boundaries → data flow + assets/entry points → STRIDE + attack trees → prioritize threats → mitigations + residual risks. Write `.security-power/.output/threat-modeling-report.md`.
 
-## Report format
+## Report format (required)
 
-Report **must** include at the top (or in a dedicated section):
+**Scan info** — one label per line (no "from X to Y" in one line):
+- `Git branch: <name>`
+- `SCOPE_START_COMMIT: <hash>`
+- `SCOPE_END_COMMIT: <hash>` (Choice 1: use resolved branch’s tip hash, not "HEAD")
+- `SCOPE_END_BRANCH: <branch>`
+- `Git commits:` then list `hash subject` per line
 
-- **Threat modeling scope**
-  - **Scope type**: "Diff" or "Full codebase".
-  - **Git diff** (when scope is diff): the full diff text or path; if summarized, link to full diff.
-  - **Commit records** (when scope is diff): list of commits included, e.g. `commit_hash short_subject` per line. If user did not provide commit list, derive from diff or ask user to confirm.
-  - **Last commit hash** (when scope is Full codebase): the git hash of the latest commit (e.g. `git rev-parse HEAD`). Must be written so the full-codebase scope is pinned to a specific revision.
-
-Then: methodology findings (STRIDE, attack trees, mitigations, etc.) per threat-modeling-expert.
+**Threat modeling scope**: type ("Entire code" | "Single commit" | "Range") + scope-specific. Then STRIDE/attack trees/mitigations per threat-modeling-expert.
 
 ## Relations
 
-- **Plan**: if selected plan includes `threat-modeling` step, call this skill (do not run threat-modeling inside scan-in-docker; this step is expert-driven, not script-in-container).
-- **executing-agent**: may consume `.security-power/.output/threat-modeling-report.md`.
-
-## Output
-
-Report path: `.security-power/.output/threat-modeling-report.md` (or as configured). Report includes scope (git diff + commit records when diff; last commit hash when Full codebase) and full threat model.
+Plan calls this skill when step=threat-modeling (not in scan-in-docker). executing-agent consumes the report.
