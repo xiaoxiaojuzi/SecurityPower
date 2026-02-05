@@ -5,7 +5,7 @@ description: Choose which tool to use per scan step. Only used when step has no 
 
 # Scan tool choice
 
-**When**: Step has no (or empty) `scripts` in `.security-power/scan-scripts.json`. Then ask user which tool, write `tool` to file; scan-script-record fills `scripts`. If step is skipped but has no scripts, still set tool (and let scan-script-record set scripts) and write — do not run.
+**When**: Step has no (or empty) `scripts` in `.security-power/scan-scripts.json`. **Ask user to choose** a tool (present options); **agent** writes `tool` to file. User **only inputs their choice**; user does **not** edit `scan-scripts.json`. scan-script-record then fills `scripts` and agent writes. If step skipped but no scripts, agent still sets tool and writes — do not run.
 
 ## Per-step candidate tools
 
@@ -21,8 +21,8 @@ description: Choose which tool to use per scan step. Only used when step has no 
 
 ## Flow
 
-- **No record for step**: List candidates, ask user, write `tool` to `.security-power/scan-scripts.json` (scripts `[]` until scan-script-record fills).
-- **Has record**: Ask “Use same tool [tool]?” — yes → keep; no → ask again, update `tool`.
+- **No record for step**: List candidates, **ask user to pick one** (user inputs choice only). **Agent** writes `tool` to `.security-power/scan-scripts.json`. User does not edit the file.
+- **Has record**: Ask “Use same tool [tool]?” — user replies yes/no; if no, agent updates `tool` in file.
 - Re-ask when user says “change tool” or tool run failed.
 
-This skill only sets `tool`; scan-script-record sets `scripts` and runs.
+Agent writes `tool`; scan-script-record writes `scripts` and runs. User never edits scan-scripts.json.

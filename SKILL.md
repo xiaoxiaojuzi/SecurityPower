@@ -7,7 +7,7 @@ description: SecurityPower entry. Plan → tool choice → script record → run
 
 Security code workflow for agents. [Trail of Bits Skills](https://github.com/trailofbits/skills) (static-analysis, insecure-defaults, testing-handbook-skills, etc.).
 
-**Flow**: **First** — if repo is git-managed, add `.security-power/.output/` to `.gitignore` (avoid leaking report data). Then: plan (steps, scripts in `.security-power/scan-scripts.json`) → scan-tool-choice (if no scripts) → scan-script-record (persist scripts) → **scan-in-docker** (run scan steps in one container) and/or **threat-modeling** (if selected; scope = diff or full code; report with scope) → executing-agent (report + optional PR).
+**Flow**: **First** — if repo is git-managed, add `.security-power/.output/` to `.gitignore` (avoid leaking report data). Then: plan (steps, scripts in `.security-power/scan-scripts.json`) → scan-tool-choice (if no scripts) → scan-script-record (persist scripts) → **scan-in-docker** and/or **threat-modeling** → executing-agent (report + optional PR). **User interaction**: user **only inputs chosen options** (e.g. plan `1+2+3`, tool choice, threat scope `1`/`2+hash`/`3+start+end`); the **agent** reads input and **writes** `last-plan.json` and `scan-scripts.json` — user does **not** edit these files.
 
 **Required**: All scan script execution **MUST** happen inside one Docker container via **scan-in-docker**. Do **not** run scan scripts (e.g. `npm audit`, `gitleaks`, `trivy`) directly on the host; that skips Docker and is non-compliant.
 

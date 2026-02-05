@@ -24,6 +24,8 @@ Run all scan steps inside **one Docker container**. Paths: scripts/plan → `.se
 
 ## Plan selection (before run)
 
+**User interaction**: User **only inputs their choice** (options below). **Do not** ask the user to edit `last-plan.json` or `scan-scripts.json`; the **agent** parses user input and **writes** to those files.
+
 **Step index** (for user choice):
 
 | 序号 | step_id        | purpose        |
@@ -37,25 +39,23 @@ Run all scan steps inside **one Docker container**. Paths: scripts/plan → `.se
 | 7    | fuzzing        | fuzz           |
 | 8    | threat-modeling| threat model   |
 
-1. Read **last selected plan** from `.security-power/last-plan.json` if it exists. Format: `{ "steps": ["compile", "secret-scan", ...] }` (order preserved). If missing or invalid, default = all 8 steps (1–8).
-2. **Show user** the optional plans (example wording):
-   - **当前默认（上次执行）**: 展示 last-plan 中的步骤对应序号，如 `1+2+3+4`；若无 last-plan 则默认 `1+2+3+4+5+6+7+8`（全部 8 步）。
-   - **可选**: 全部 8 步、或子集如 1+2+3、2+3+4、1+3+5+8 等（按序号组合，保持顺序）；8 = threat-modeling。
-3. **Ask user** to either:
-   - **确认执行**: 回答「执行」「执行计划」「确认」或 "run" → 按**当前默认**（上次计划）执行。
-   - **选择新计划**: 以序号组合回答，如 `1+2+3`、`1+2+3+4`（可用 `+` 或 `,`，无需空格）。解析为 step_id 有序列表，写入 `.security-power/last-plan.json`，再执行该计划。
-4. When parsing `1+2+3`, map indices to step_id (1→compile, 2→secret-scan, …, 8→threat-modeling), keep order, then run only those steps (and record scripts for non–threat-modeling steps; skipped steps still get tool+scripts written if not yet in scan-scripts.json).
+1. Read **last selected plan** from `.security-power/last-plan.json` if it exists. If missing or invalid, default = all 8 steps (1–8).
+2. **Show user** the options: default = last-plan (e.g. `1+2+3+4`) or full `1+2+3+4+5+6+7+8`; they can pick a subset like `1+2+3`, `1+3+5+8`, etc. (order preserved).
+3. **Ask user to enter one of**:
+   - **Confirm**: reply "执行" / "执行计划" / "确认" / "run" → use current default plan.
+   - **New plan**: reply with step indices, e.g. `1+2+3` or `1+2+3+4` (use `+` or `,`). **Agent** parses input → maps to step_id list → **writes** `.security-power/last-plan.json` → then runs that plan.
+4. Agent: when user sends e.g. `1+2+3`, map indices to step_id (1→compile, …, 8→threat-modeling), **write** ordered steps to `last-plan.json`; for steps without scripts yet, agent (via scan-tool-choice / scan-script-record) **writes** to `scan-scripts.json`. User never edits these files.
 
 ## Run flow
 
 0. **First**: If the project is under **git** (`.git` exists), add the report path to **`.gitignore`** so reports are not committed and privacy is protected. Add: `.security-power/.output/` (and optionally `.security-power/` if you want to ignore scripts/plan files too).
-1. **Plan selection** (see above): read `.security-power/last-plan.json` as default; show optional plans; user confirms or replies with e.g. `1+2+3`; resolve to ordered step list and persist to `last-plan.json` when user chooses a new plan.
-2. Read `.security-power/scan-scripts.json`. For steps in the selected plan **except threat-modeling**: ensure each has `tool` and `scripts` (if not, call **scan-tool-choice** then **scan-script-record** to set and persist; **Step skipped** or not in plan → if no scripts yet, still set tool + scripts and write, do not run). **threat-modeling** step is not run via scan-in-docker; skip script setup for it.
+1. **Plan selection** (see above): read `last-plan.json` as default; show options; **user inputs choice only** (confirm or e.g. `1+2+3`); **agent** resolves and **writes** `last-plan.json` when user picks a new plan (user does not edit the file).
+2. Read `scan-scripts.json`. For steps in the selected plan **except threat-modeling**: if a step has no `tool`/`scripts`, **ask user for options** (e.g. which tool); **agent** writes to `scan-scripts.json` via **scan-tool-choice** + **scan-script-record**. User does not edit the file. **threat-modeling**: skip script setup; not run in scan-in-docker.
 3. **Execute steps**:
    - **threat-modeling** (if in selected plan): Call **threat-modeling** skill — scope = user-provided diff (show which commits are included) or full code; run per [threat-modeling-expert](https://github.com/sickn33/antigravity-awesome-skills/tree/main/skills/threat-modeling-expert); write report to `.security-power/.output/` with **Threat modeling scope** (git diff + commit records). Do not run threat-modeling inside Docker.
    - **All other steps**: Run **only** via **scan-in-docker**: start one container → copy code in → run each selected step’s `scripts` inside the container → copy reports out. Do **not** run `scripts` on the host; that does not use Docker. On step failure: record and continue; summarize at end.
-4. After run, **update** `.security-power/last-plan.json` with the steps that were actually executed (so next time this plan is the default).
-5. **Review execution**: Review the execution process (logs, actual commands run, failures, or user corrections). If any step’s **scripts** differed from what is in `scan-scripts.json` (e.g. command was adjusted during run, or a better script was used), **update** `.security-power/scan-scripts.json` with the actual/improved scripts so the next run uses them.
+4. **Agent** writes `last-plan.json` with the steps actually executed (next default). User does not edit.
+5. **Review execution**: If scripts changed (e.g. fixed during run), **agent** updates `scan-scripts.json` with the improved scripts. User does not edit the file.
 
 **Summary**: Plan selects steps and ensures scripts are set; **scan-in-docker** performs all scan tool execution in one container. **Review** (step 5) then hand off results to **executing-agent** for report and optional PR.
 

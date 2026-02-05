@@ -7,7 +7,7 @@ description: Persist and run per-step scripts in .security-power/scan-scripts.js
 
 File: `.security-power/scan-scripts.json`. Format: `{ "<step_id>": { "tool": "...", "scripts": ["cmd1", "cmd2"] } }`. Step IDs: compile, secret-scan, dependency-scan, static-scan, package-scan, dynamic-scan, fuzzing.
 
-**Rule**: All steps run in the **same** Docker container. Reports → `.security-power/.output/`. **Always persist** each step’s `tool` and `scripts` (even if step is skipped this run).
+**Rule**: All steps run in the **same** Docker container. Reports → `.security-power/.output/`. **Agent** always persists each step’s `tool` and `scripts` to `.security-power/scan-scripts.json` (even if step skipped). User does **not** edit this file; user only provides choices when asked (e.g. tool choice via scan-tool-choice).
 
 ## Flow
 
@@ -17,7 +17,7 @@ File: `.security-power/scan-scripts.json`. Format: `{ "<step_id>": { "tool": "..
 
 Run scripts in array order in container. On script failure: mark step failed; continue or stop per policy. Re-determine scripts when user changes tool or when recorded scripts fail.
 
-**After execution (review)**: When plan finishes a run, review the execution process (logs, actual commands run, failures, user corrections). If any step’s scripts **changed** compared to `scan-scripts.json` (e.g. command was fixed during run, or a different/better script was used), **update** `.security-power/scan-scripts.json` with the actual or improved `scripts` (and `tool` if changed) so the next run uses the updated scripts.
+**After execution (review)**: When plan finishes a run, review the execution process (logs, actual commands run, failures, user corrections). If any step’s scripts **changed** compared to `scan-scripts.json` (e.g. command was fixed during run, or a different/better script was used), **agent** updates `.security-power/scan-scripts.json` with the improved `scripts`/`tool`. User does not edit the file.
 
 ## Example
 
